@@ -1,0 +1,35 @@
+- name: Public key is deployed to managed host for Ansible
+  hosts: all
+  vars:
+    account: devops
+
+  tasks:
+
+     - name: ensure devops user exists
+       user: 
+         name: devops
+         password: "{{ 'devops123' | password_hash('sha512') }}"
+         state: present
+
+     - name: enable visudo for {{ account }} 
+       lineinfile:
+         path: "/etc/sudoers.d/{{ account }}"
+         line: '"{{ account }}" ALL=(ALL) NOPASSWD: ALL'
+         state: present
+         mode: 0440
+         create: yes
+         validate: 'visudo -cf %s'
+
+     - name: Ensure key is in devops /.ssh/authorized_hosts
+       authorized_key:
+         user: "{{ account }}" 
+         state: present
+         key: '{{ item }}'
+       with_file:
+         - ~/.ssh/id_rsa.pub
+
+     - name: remove user osboxes
+       user:
+         name: osboxes
+         state: absent
+
