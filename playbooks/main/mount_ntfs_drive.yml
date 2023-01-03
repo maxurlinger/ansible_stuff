@@ -1,0 +1,26 @@
+---
+- name: ensure ntfs-3g utils and packeages are installed
+  hosts: localhost
+  vars:
+    source_url: https://github.com/tuxera/ntfs-3g/archive/refs/heads
+    destination_path: /home/devops/Downloads
+    filename: edge.zip
+  tasks:
+    - name: "Check if {{ filename }} exists in {{ destination_path }}"
+      stat:
+        path: "{{ destination_path }}/{{ filename }}"
+      register: filename_exists
+        
+    - name: check if {{ filename }} already exists 
+      debug:
+        msg: "{{ destination_path }}/{{ filename }} already exists"
+      when: filename_exists.stat.exists
+
+    - name: Downloading ntfs-3g utils
+      ansible.builtin.get_url:
+        url: "{{ source_url }}/{{ filename }}"
+        dest: "{{ destination_path }}/{{ filename }}"
+      when: not filename_exists.stat.exists
+
+
+
